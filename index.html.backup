@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
 <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/icons/icon-192.svg">
-<link rel="sitemap" type="application/xml" href="/sitemap.xml">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
 
 <meta name="application-name" content="Ledger">
 <meta name="apple-mobile-web-app-title" content="Ledger">
@@ -14,55 +13,14 @@
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Ledger — Daily Instrument | Offline-First Journal</title>
+<title>Ledger — Daily Instrument</title>
 <meta name="theme-color" content="#020617" />
-<meta name="description" content="An offline-first daily logging instrument designed for speed, clarity, and intentional reflection. No accounts, no AI, no cloud dependency." />
+<meta name="description" content="An offline-first daily logging instrument designed for speed, clarity, and intentional reflection." />
 
-<!-- SEO Meta Tags -->
-<meta name="keywords" content="journal, diary, daily log, offline journal, privacy-first, local storage, PWA, journaling app, daily reflection" />
-<meta name="author" content="Ledger" />
-<meta name="robots" content="index, follow" />
-<link rel="canonical" href="https://yourdomain.com/" />
-
-<!-- Open Graph / Facebook -->
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://yourdomain.com/" />
-<meta property="og:title" content="Ledger — Daily Instrument | Offline-First Journal" />
-<meta property="og:description" content="An offline-first daily logging instrument designed for speed, clarity, and intentional reflection. No accounts, no AI, no cloud dependency." />
-<meta property="og:image" content="https://yourdomain.com/icons/icon-512.svg" />
-
-<!-- Twitter -->
-<meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:url" content="https://yourdomain.com/" />
-<meta property="twitter:title" content="Ledger — Daily Instrument | Offline-First Journal" />
-<meta property="twitter:description" content="An offline-first daily logging instrument designed for speed, clarity, and intentional reflection. No accounts, no AI, no cloud dependency." />
-<meta property="twitter:image" content="https://yourdomain.com/icons/icon-512.svg" />
-
-<!-- Structured Data -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "Ledger",
-  "description": "An offline-first daily logging instrument designed for speed, clarity, and intentional reflection.",
-  "url": "https://yourdomain.com/",
-  "applicationCategory": "LifestyleApplication",
-  "operatingSystem": "Any",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "USD"
-  },
-  "featureList": [
-    "Offline-first architecture",
-    "Voice dictation support",
-    "Multiple export formats (TXT, JSON, Markdown)",
-    "Daily prompts",
-    "Auto-save functionality",
-    "Privacy-focused (no accounts, no tracking)"
-  ]
-}
-</script>
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 
 <script src="https://esm.sh/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -74,8 +32,8 @@
     theme: {
       extend: {
         fontFamily: {
-          sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-          serif: ['Georgia', 'Cambria', 'Times New Roman', 'Times', 'serif'],
+          sans: ['Outfit', 'sans-serif'],
+          serif: ['Instrument Serif', 'serif'],
         },
         colors: {
           slate: {
@@ -121,7 +79,6 @@
   .glass-card {
     background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
     backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
     border: 1px solid rgba(255,255,255,0.1);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   }
@@ -265,21 +222,14 @@ function App() {
       } catch(e) { setText(saved); }
     }
 
-    // Fetch Weather with timeout
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-    
-    fetch("https://wttr.in/?format=1", { signal: controller.signal })
+    // Fetch Weather (Plain text format)
+    fetch("https://wttr.in/?format=1")
       .then(r => r.text())
       .then(t => {
-        clearTimeout(timeout);
         if (t.includes("<html")) throw new Error("HTML returned");
         setWeather(t.trim());
       })
-      .catch(() => {
-        clearTimeout(timeout);
-        setWeather("");
-      });
+      .catch(() => setWeather(""));
 
     // Focus on load
     textareaRef.current?.focus();
@@ -345,28 +295,11 @@ function App() {
     recognition.start();
   };
 
-  const handleExport = (format = 'txt') => {
+  const handleExport = () => {
     feedback.success();
     const date = new Date().toISOString().slice(0, 10);
-    const dateStr = getTodayString();
-    
-    if (format === 'txt') {
-      const content = `LEDGER — ${dateStr}\n\n${text}\n\nExported on ${new Date().toLocaleString()}`;
-      downloadFile(`ledger-${date}.txt`, content, "text/plain");
-    } else if (format === 'json') {
-      const content = JSON.stringify({
-        date,
-        text,
-        words: stats.words,
-        chars: stats.chars,
-        updatedAt: new Date().toISOString(),
-        exportedAt: new Date().toISOString()
-      }, null, 2);
-      downloadFile(`ledger-${date}.json`, content, "application/json");
-    } else if (format === 'md') {
-      const content = `# Ledger — ${dateStr}\n\n${text}\n\n---\n*Exported on ${new Date().toLocaleString()}*\n*${stats.words} words, ${stats.chars} characters*`;
-      downloadFile(`ledger-${date}.md`, content, "text/markdown");
-    }
+    const content = `LEDGER — ${getTodayString()}\n\n${text}\n\nExported on ${new Date().toLocaleString()}`;
+    downloadFile(`ledger-${date}.txt`, content, "text/plain");
   };
 
   const handleShare = () => {
@@ -435,40 +368,18 @@ function App() {
       <footer class="flex flex-wrap items-center justify-between gap-6 pb-4">
         
         <div class="flex gap-3">
-          <button
-            onClick=${() => handleExport('txt')}
-            title="Export as TXT (Ctrl+E)"
-            aria-label="Export as text file"
+          <button 
+            onClick=${handleExport}
+            title="Export as Text"
             class="h-12 px-6 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full flex items-center gap-2 text-sm font-medium tracking-wide btn-hover text-indigo-300"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            TXT
+            Export TXT
           </button>
           
-          <button
-            onClick=${() => handleExport('json')}
-            title="Export as JSON"
-            aria-label="Export as JSON file"
-            class="h-12 px-6 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full flex items-center gap-2 text-sm font-medium tracking-wide btn-hover text-indigo-300"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            JSON
-          </button>
-          
-          <button
-            onClick=${() => handleExport('md')}
-            title="Export as Markdown"
-            aria-label="Export as Markdown file"
-            class="h-12 px-6 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full flex items-center gap-2 text-sm font-medium tracking-wide btn-hover text-indigo-300"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            MD
-          </button>
-          
-          <button
+          <button 
             onClick=${handleShare}
             title="Share Entry"
-            aria-label="Share entry"
             class="h-12 w-12 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full flex items-center justify-center btn-hover text-slate-400"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 100-2.684 3 3 0 000 2.684zm0 12a3 3 0 100-2.684 3 3 0 000 2.684z"/></svg>
@@ -476,19 +387,16 @@ function App() {
         </div>
 
         <div class="flex gap-3 items-center">
-           <button
+           <button 
             onClick=${clearEntry}
             title="Clear Today"
-            aria-label="Clear today's entry"
             class="h-12 w-12 bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 rounded-full flex items-center justify-center btn-hover text-red-400/60"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
           </button>
 
-          <button
+          <button 
             onClick=${handleVoice}
-            aria-label=${isListening ? 'Stop dictation' : 'Start dictation'}
-            aria-pressed=${isListening}
             class="h-14 px-8 ${isListening ? 'bg-red-500 shadow-[0_0_20px_rgba(239,68,68,0.4)]' : 'bg-indigo-600 shadow-[0_0_20px_rgba(99,102,241,0.3)]'} rounded-full flex items-center gap-3 text-sm font-semibold tracking-widest uppercase transition-all duration-300 active:scale-95"
           >
             <span class="relative flex h-3 w-3 ${isListening ? 'block' : 'hidden'}">
@@ -506,26 +414,6 @@ function App() {
 }
 
 createRoot(document.getElementById("root")).render(html`<${App}/>`);
-
-// Register Service Worker
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => {
-        console.log('Service Worker registered successfully');
-        // Check for updates
-        reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('New version available! Refresh to update.');
-            }
-          });
-        });
-      })
-      .catch(err => console.error('Service Worker registration failed:', err));
-  });
-}
 </script>
 
 </body>
